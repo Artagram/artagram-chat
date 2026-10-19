@@ -1,0 +1,40 @@
+server:
+  port: ${SERVER_PORT:8085}
+  shutdown: graceful
+
+spring:
+  application:
+    name: artagram-chat
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://artagram:artagram@localhost:27017/db_chat?authSource=admin}
+      auto-index-creation: true
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:artagram}
+    password: ${SPRING_RABBITMQ_PASSWORD:artagram}
+
+app:
+  lienzo:
+    internal-url: ${LIENZO_INTERNAL_URL:http://localhost:8084}
+  jwt:
+    public-key-path: ${JWT_PUBLIC_KEY_PATH:../artagram-infra/secrets-dev/jwt-public.pem}
+    public-key-pem: ${JWT_PUBLIC_KEY_PEM:}
+    secret: ${JWT_SECRET:dev-only-secret-change-me-please-please-change-32bytes}
+  rabbitmq:
+    exchange: ${RABBITMQ_EXCHANGE:artagram.events}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
