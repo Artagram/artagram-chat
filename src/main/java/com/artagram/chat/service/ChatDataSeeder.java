@@ -87,8 +87,8 @@ public class ChatDataSeeder implements CommandLineRunner {
             comunidadRepo.save(new MensajeComunidadDocument(UUID.randomUUID(), comunidadTinta, noaId, "noa_tinta", "Nueva plancha de grabado lista para probar"));
         }
 
-        if (notifRepo.findByUsuarioIdOrderByCreadoEnDesc(luciaId).isEmpty()) {
-            notifRepo.save(new NotificacionDocument(UUID.randomUUID(), luciaId, "SEGUIDOR", "sam_pixel comenzó a seguirte.", "/artistas/sam_pixel"));
+        if (notifRepo.findTop50ByDestinatarioIdOrderByCreadoEnDesc(luciaId).isEmpty()) {
+            notifRepo.save(new NotificacionDocument(UUID.randomUUID(), luciaId, "SEGUIDOR", samId, "sam_pixel", "/artistas/sam_pixel", "sam_pixel comenzó a seguirte."));
         }
 
         log.info("Seed de datos para artagram-chat completado exitosamente.");

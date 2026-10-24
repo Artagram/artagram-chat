@@ -86,6 +86,36 @@ public class ChatPersonalService {
         return aDto(doc);
     }
 
+    /**
+     * Persiste un mensaje que ya se transmitio en vivo por STOMP en
+     * artagram-canvas (ver {@code personal.message.sent} en
+     * ChatEventListener) — artagram-chat sigue siendo el unico dueño de la
+     * persistencia, canvas no guarda copia local. Mantiene la misma
+     * notificacion SSE que el envio via REST para que el comportamiento sea
+     * idéntico sin importar el canal de entrada.
+     */
+    public MensajePersonalDto guardarDesdeStomp(UUID id, UUID remitenteId, String remitenteNombre,
+                                                 UUID destinatarioId, String contenido) {
+        if (mensajeRepository.existsById(id)) {
+            return aDto(mensajeRepository.findById(id).orElseThrow());
+        }
+        String destNombre = directorioRepository.findById(destinatarioId)
+                .map(UsuarioDirectorioDocument::getNombreArtista)
+                .orElse("artista");
+
+        MensajePersonalDocument doc = new MensajePersonalDocument(
+                id, remitenteId, remitenteNombre, destinatarioId, destNombre, contenido
+        );
+        doc = mensajeRepository.save(doc);
+
+        sseService.emitir(new NotificacionDocument(
+                UUID.randomUUID(), destinatarioId, "MENSAJE_DIRECTO", remitenteId,
+                remitenteNombre, doc.getId().toString(), "Te envió un mensaje: " + contenido
+        ));
+
+        return aDto(doc);
+    }
+
     private MensajePersonalDto aDto(MensajePersonalDocument doc) {
         return new MensajePersonalDto(
                 doc.getId(), doc.getRemitenteId(), doc.getRemitenteNombre(),
