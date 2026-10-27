@@ -3,7 +3,6 @@ package com.artagram.chat.service;
 import com.artagram.chat.common.ApiException;
 import com.artagram.chat.domain.MensajePersonalDocument;
 import com.artagram.chat.domain.MensajePersonalRepository;
-import com.artagram.chat.domain.NotificacionDocument;
 import com.artagram.chat.domain.UsuarioDirectorioDocument;
 import com.artagram.chat.domain.UsuarioDirectorioRepository;
 import com.artagram.chat.dto.ConversacionResumenDto;
@@ -21,14 +20,14 @@ public class ChatPersonalService {
 
     private final MensajePersonalRepository mensajeRepository;
     private final UsuarioDirectorioRepository directorioRepository;
-    private final NotificacionSseService sseService;
+    private final ChatNotificationPublisher notificationPublisher;
 
     public ChatPersonalService(MensajePersonalRepository mensajeRepository,
                                UsuarioDirectorioRepository directorioRepository,
-                               NotificacionSseService sseService) {
+                               ChatNotificationPublisher notificationPublisher) {
         this.mensajeRepository = mensajeRepository;
         this.directorioRepository = directorioRepository;
-        this.sseService = sseService;
+        this.notificationPublisher = notificationPublisher;
     }
 
     public List<ConversacionResumenDto> listarConversaciones(UUID usuarioId) {
@@ -78,10 +77,8 @@ public class ChatPersonalService {
         );
         doc = mensajeRepository.save(doc);
 
-        sseService.emitir(new NotificacionDocument(
-                UUID.randomUUID(), req.destinatarioId(), "MENSAJE_DIRECTO", remitenteId,
-                remitenteNombre, doc.getId().toString(), "Te envió un mensaje: " + req.contenido()
-        ));
+        notificationPublisher.publicarMensajeDirecto(req.destinatarioId(), remitenteId, remitenteNombre,
+                doc.getId(), req.contenido());
 
         return aDto(doc);
     }
@@ -90,8 +87,8 @@ public class ChatPersonalService {
      * Persiste un mensaje que ya se transmitio en vivo por STOMP en
      * artagram-canvas (ver {@code personal.message.sent} en
      * ChatEventListener) — artagram-chat sigue siendo el unico dueño de la
-     * persistencia, canvas no guarda copia local. Mantiene la misma
-     * notificacion SSE que el envio via REST para que el comportamiento sea
+     * persistencia, canvas no guarda copia local. Publica la misma
+     * notificacion que el envio via REST para que el comportamiento sea
      * idéntico sin importar el canal de entrada.
      */
     public MensajePersonalDto guardarDesdeStomp(UUID id, UUID remitenteId, String remitenteNombre,
@@ -108,10 +105,8 @@ public class ChatPersonalService {
         );
         doc = mensajeRepository.save(doc);
 
-        sseService.emitir(new NotificacionDocument(
-                UUID.randomUUID(), destinatarioId, "MENSAJE_DIRECTO", remitenteId,
-                remitenteNombre, doc.getId().toString(), "Te envió un mensaje: " + contenido
-        ));
+        notificationPublisher.publicarMensajeDirecto(destinatarioId, remitenteId, remitenteNombre,
+                doc.getId(), contenido);
 
         return aDto(doc);
     }

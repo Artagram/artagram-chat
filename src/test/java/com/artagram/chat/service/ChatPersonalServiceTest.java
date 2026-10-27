@@ -3,6 +3,7 @@ package com.artagram.chat.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,13 +32,13 @@ class ChatPersonalServiceTest {
     private UsuarioDirectorioRepository directorioRepository;
 
     @Mock
-    private NotificacionSseService sseService;
+    private ChatNotificationPublisher notificationPublisher;
 
     private ChatPersonalService service;
 
     @BeforeEach
     void setUp() {
-        service = new ChatPersonalService(mensajeRepository, directorioRepository, sseService);
+        service = new ChatPersonalService(mensajeRepository, directorioRepository, notificationPublisher);
     }
 
     @Test
@@ -68,6 +69,6 @@ class ChatPersonalServiceTest {
         assertThat(dto.remitenteId()).isEqualTo(remitenteId);
         assertThat(dto.destinatarioId()).isEqualTo(destinatarioId);
         assertThat(dto.contenido()).isEqualTo("Hola que tal!");
-        verify(sseService).emitir(any());
+        verify(notificationPublisher).publicarMensajeDirecto(eq(destinatarioId), eq(remitenteId), eq("elena_acuarela"), any(), eq("Hola que tal!"));
     }
 }

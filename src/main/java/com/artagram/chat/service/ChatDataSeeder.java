@@ -4,8 +4,6 @@ import com.artagram.chat.domain.MensajeComunidadDocument;
 import com.artagram.chat.domain.MensajeComunidadRepository;
 import com.artagram.chat.domain.MensajePersonalDocument;
 import com.artagram.chat.domain.MensajePersonalRepository;
-import com.artagram.chat.domain.NotificacionDocument;
-import com.artagram.chat.domain.NotificacionRepository;
 import com.artagram.chat.domain.UsuarioDirectorioDocument;
 import com.artagram.chat.domain.UsuarioDirectorioRepository;
 import java.util.List;
@@ -25,16 +23,13 @@ public class ChatDataSeeder implements CommandLineRunner {
     private final UsuarioDirectorioRepository directorioRepo;
     private final MensajePersonalRepository personalRepo;
     private final MensajeComunidadRepository comunidadRepo;
-    private final NotificacionRepository notifRepo;
 
     public ChatDataSeeder(UsuarioDirectorioRepository directorioRepo,
                           MensajePersonalRepository personalRepo,
-                          MensajeComunidadRepository comunidadRepo,
-                          NotificacionRepository notifRepo) {
+                          MensajeComunidadRepository comunidadRepo) {
         this.directorioRepo = directorioRepo;
         this.personalRepo = personalRepo;
         this.comunidadRepo = comunidadRepo;
-        this.notifRepo = notifRepo;
     }
 
     @Override
@@ -85,10 +80,6 @@ public class ChatDataSeeder implements CommandLineRunner {
         UUID comunidadTinta = UUID.fromString("c0ffee00-0000-4000-8000-000000000003");
         if (comunidadRepo.findByComunidadIdOrderByCreadoEnAsc(comunidadTinta).isEmpty()) {
             comunidadRepo.save(new MensajeComunidadDocument(UUID.randomUUID(), comunidadTinta, noaId, "noa_tinta", "Nueva plancha de grabado lista para probar"));
-        }
-
-        if (notifRepo.findTop50ByDestinatarioIdOrderByCreadoEnDesc(luciaId).isEmpty()) {
-            notifRepo.save(new NotificacionDocument(UUID.randomUUID(), luciaId, "SEGUIDOR", samId, "sam_pixel", "/artistas/sam_pixel", "sam_pixel comenzó a seguirte."));
         }
 
         log.info("Seed de datos para artagram-chat completado exitosamente.");
