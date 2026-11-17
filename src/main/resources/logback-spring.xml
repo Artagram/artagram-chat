@@ -1,15 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="artagram-chat"/>
 
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [${appName}] [traceId=%X{traceId:-none}] [%thread] %logger{36} - %msg%n</pattern>
+    <!-- Logs JSON en todos los servicios: CloudWatch Logs Insights filtra por
+         traceId a traves de todos los grupos de logs (escenario 10). -->
+    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>usuarioId</includeMdcKeyName>
+            <includeMdcKeyName>operacion</includeMdcKeyName>
+            <customFields>{"servicio":"${appName}"}</customFields>
+            <fieldNames>
+                <timestamp>timestamp</timestamp>
+                <message>mensaje</message>
+                <thread>hilo</thread>
+                <logger>logger</logger>
+                <level>nivel</level>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
         </encoder>
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="JSON"/>
     </root>
 </configuration>
